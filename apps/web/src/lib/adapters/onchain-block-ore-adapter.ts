@@ -611,9 +611,11 @@ export const createOnchainBlockOreAdapter = ({
     return items.filter((item): item is OwnedNftAsset => Boolean(item));
   };
 
-  const sortLogsDesc = <TLog extends Pick<Log, "blockNumber" | "logIndex">>(
+  const sortLogsDesc = <
+    TLog extends { blockNumber?: bigint; logIndex?: number },
+  >(
     logs: TLog[],
-  ) =>
+  ): TLog[] =>
     [...logs].sort((a, b) => {
       const blockDiff = Number((b.blockNumber ?? 0n) - (a.blockNumber ?? 0n));
       if (blockDiff !== 0) {
@@ -626,10 +628,12 @@ export const createOnchainBlockOreAdapter = ({
   const getRecentPurchaseRecords = async (
     limit = 10,
   ): Promise<AdminPurchaseRecord[]> => {
-    type PurchaseLog = Pick<
-      Log,
-      "args" | "blockNumber" | "logIndex" | "transactionHash"
-    >;
+    type PurchaseLog = {
+      args: Record<string, unknown>;
+      blockNumber?: bigint | undefined;
+      logIndex?: number | undefined;
+      transactionHash?: string | undefined;
+    };
 
     const logs = await publicClient.getLogs({
       address,
@@ -665,7 +669,7 @@ export const createOnchainBlockOreAdapter = ({
           pricePaid: args.pricePaid ?? 0n,
           blockNumber: log.blockNumber ?? 0n,
           createdAt: await resolveCreatedAt(log.blockNumber ?? 0n),
-          txHash: log.transactionHash,
+          txHash: log.transactionHash! as `0x${string}`,
         };
       }),
     );
@@ -674,10 +678,12 @@ export const createOnchainBlockOreAdapter = ({
   const getRecentWithdrawalRecords = async (
     limit = 10,
   ): Promise<AdminWithdrawalRecord[]> => {
-    type WithdrawalLog = Pick<
-      Log,
-      "args" | "blockNumber" | "logIndex" | "transactionHash"
-    >;
+    type WithdrawalLog = {
+      args: Record<string, unknown>;
+      blockNumber?: bigint | undefined;
+      logIndex?: number | undefined;
+      transactionHash?: string | undefined;
+    };
 
     const [usdcLogs, nativeLogs] = await Promise.all([
       publicClient.getLogs({
@@ -720,7 +726,7 @@ export const createOnchainBlockOreAdapter = ({
         amount: ((log.args as { amount?: bigint }).amount ?? 0n) as bigint,
         blockNumber: log.blockNumber ?? 0n,
         logIndex: log.logIndex ?? 0,
-        txHash: log.transactionHash,
+        txHash: log.transactionHash!,
       })),
       ...(nativeLogs as WithdrawalLog[]).map((log) => ({
         kind: "ETH" as const,
@@ -731,7 +737,7 @@ export const createOnchainBlockOreAdapter = ({
         amount: ((log.args as { amount?: bigint }).amount ?? 0n) as bigint,
         blockNumber: log.blockNumber ?? 0n,
         logIndex: log.logIndex ?? 0,
-        txHash: log.transactionHash,
+        txHash: log.transactionHash! as `0x${string}`,
       })),
     ];
 
@@ -745,7 +751,7 @@ export const createOnchainBlockOreAdapter = ({
           amount: record.amount,
           blockNumber: record.blockNumber,
           createdAt: await resolveCreatedAt(record.blockNumber),
-          txHash: record.txHash,
+          txHash: record.txHash! as `0x${string}`,
         })),
     );
   };
@@ -815,9 +821,7 @@ export const createOnchainBlockOreAdapter = ({
       }));
   };
 
-  const getRecentActivity = async (
-    limit = 20,
-  ): Promise<ActivityFeedItem[]> => {
+  const getRecentActivity = async (limit = 20): Promise<ActivityFeedItem[]> => {
     const logs = await publicClient.getLogs({
       address,
       event: {
@@ -832,10 +836,12 @@ export const createOnchainBlockOreAdapter = ({
       toBlock: "latest",
     });
 
-    type RevealLog = Pick<
-      Log,
-      "args" | "blockNumber" | "logIndex" | "transactionHash"
-    >;
+    type RevealLog = {
+      args: Record<string, unknown>;
+      blockNumber?: bigint | undefined;
+      logIndex?: number | undefined;
+      transactionHash?: string | undefined;
+    };
 
     const recentLogs = sortLogsDesc(logs as RevealLog[]).slice(0, limit);
 
