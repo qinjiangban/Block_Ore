@@ -1,0 +1,27 @@
+{
+  "name": "Block Ore Genesis",
+  "description": "The legendary Genesis ore — the rarest discovery in the Block Ore universe. Only 1,000 will ever exist. This NFT certifies the discovery of a Genesis vein.",
+  "image": "https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=a%20radiant%20cyan%20crystalline%20genesis%20stone%20with%20glowing%20inner%20light%20floating%20in%20a%20cosmic%20cavern%2C%20digital%20art%20style%2C%20game%20asset%2C%20ethereal%2C%20legendary%20gemstone%20with%20luminous%20veins&image_size=square_hd",
+  "attributes": [
+    {
+      "trait_type": "Ore Type",
+      "value": "Genesis"
+    },
+    {
+      "trait_type": "Rarity",
+      "value": "Legendary"
+    },
+    {
+      "trait_type": "Points",
+      "value": 2000
+    },
+    {
+      "trait_type": "Probability",
+      "value": "0.1%"
+    },
+    {
+      "trait_type": "Max Supply",
+      "value": 1000
+    }
+  ]
+}

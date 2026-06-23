@@ -30,7 +30,6 @@ const webpackAliases = Object.fromEntries(
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  outputFileTracingRoot: path.join(__dirname, "../.."),
   turbopack: {
     resolveAlias: turbopackAliases,
   },

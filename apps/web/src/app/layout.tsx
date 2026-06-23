@@ -21,6 +21,9 @@ const body = Manrope({
 export const metadata: Metadata = {
   title: "Block Ore",
   description: "Block Ore - A lightweight mining mini-game",
+  other: {
+    'base:app_id': '6a0c45691c1db8c69c491b18',
+  },
 };
 
 export default async function RootLayout({
@@ -33,7 +36,7 @@ export default async function RootLayout({
   return (
     <html lang={locale} className={cn("font-sans", geist.variable)} suppressHydrationWarning>
       <body className={`${display.variable} ${body.variable}`}>
-        
+
         <LocaleProvider>
           <AppProviders>
             {children}

@@ -1,0 +1,23 @@
+{
+  "name": "Block Ore Diamond",
+  "description": "A rare Diamond ore mined from the Block Ore blockchain. This NFT certifies the discovery of a precious Diamond vein.",
+  "image": "https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=a%20shimmering%20purple%20diamond%20crystal%20floating%20in%20a%20dark%20cavern%20with%20glowing%20particles%20surrounding%20it%2C%20digital%20art%20style%2C%20game%20asset%2C%20detailed%20crystal%20structure%2C%20ethereal%20lighting&image_size=square_hd",
+  "attributes": [
+    {
+      "trait_type": "Ore Type",
+      "value": "Diamond"
+    },
+    {
+      "trait_type": "Rarity",
+      "value": "Ultra Rare"
+    },
+    {
+      "trait_type": "Points",
+      "value": 500
+    },
+    {
+      "trait_type": "Probability",
+      "value": "0.9%"
+    }
+  ]
+}
