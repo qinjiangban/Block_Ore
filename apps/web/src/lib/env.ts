@@ -22,8 +22,11 @@ export const blockOreEnv = {
   privyAppId: process.env.NEXT_PUBLIC_PRIVY_APP_ID ?? "",
   privyClientId: process.env.NEXT_PUBLIC_PRIVY_CLIENT_ID ?? "",
   baseNetwork:
-    normalizeMode(process.env.NEXT_PUBLIC_BASE_NETWORK) ??
+  /* //上线主网后使用
+      normalizeMode(process.env.NEXT_PUBLIC_BASE_NETWORK) ??
     (process.env.NODE_ENV === "production" ? "mainnet" : "sepolia"),
+  */
+    normalizeMode(process.env.NEXT_PUBLIC_BASE_NETWORK) ?? "sepolia",
 
   // RPC
   baseRpcUrl: process.env.NEXT_PUBLIC_BASE_RPC_URL ?? "",
