@@ -15,5 +15,10 @@
     "contracts:test": "npm --prefix ./contracts run test",
     "contracts:deploy:sepolia": "npm --prefix ./contracts run deploy:sepolia && node ./scripts/sync-deployment-addresses.mjs sepolia",
     "contracts:deploy:base": "npm --prefix ./contracts run deploy:base && node ./scripts/sync-deployment-addresses.mjs base"
+  },
+  "dependencies": {
+    "ox": "^0.14.29",
+    "viem": "^2.53.1",
+    "wagmi": "^3.6.18"
   }
 }

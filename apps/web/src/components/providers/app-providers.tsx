@@ -7,11 +7,11 @@ import {
   useMemo,
   type PropsWithChildren,
 } from "react";
-import { PrivyProvider } from "@privy-io/react-auth";
+import { dataSuffix, PrivyProvider } from "@privy-io/react-auth";
 import { WagmiProvider } from "@privy-io/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useAccount } from "wagmi";
-
+import { useAccount,useConnection } from "wagmi";
+import { Attribution } from 'ox/erc8021';
 import { blockOreEnv, isPrivyConfigured } from "@/lib/env";
 import {
   supportedChains,
@@ -57,13 +57,16 @@ export function AppProviders({ children }: PropsWithChildren) {
       </WalletModeContext.Provider>
     );
   }
-
+  const ERC_8021_ATTRIBUTION_SUFFIX = Attribution.toDataSuffix({
+    codes: ['bc_kvfh7urx'] // Replace with your code from base.dev > Settings > Builder Codes
+  });
   return (
     <WalletModeContext.Provider value={modeValue}>
       <PrivyProvider
         appId={blockOreEnv.privyAppId}
         clientId={blockOreEnv.privyClientId || undefined}
         config={{
+          plugins: [dataSuffix(ERC_8021_ATTRIBUTION_SUFFIX)],
           loginMethods: ["wallet", "email"],
           appearance: {
             theme: "dark",
