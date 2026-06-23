@@ -16,14 +16,14 @@ const truncateWallet = (wallet: string) =>
 
 export default function HomePage() {
   const t = useTranslations("home");
-  const { getRecentActivity } = useBlockOreAdapter();
+  const { adapter } = useBlockOreAdapter();
   const [activity, setActivity] = useState<ActivityFeedItem[]>([]);
 
   useEffect(() => {
     let cancelled = false;
 
     const load = async () => {
-      const items = await getRecentActivity(20);
+      const items = await adapter?.getRecentActivity(20) ?? [];
       if (!cancelled) {
         setActivity(items);
       }
@@ -34,7 +34,7 @@ export default function HomePage() {
     return () => {
       cancelled = true;
     };
-  }, [getRecentActivity]);
+  }, [adapter]);
 
   return (
     <AppShell>

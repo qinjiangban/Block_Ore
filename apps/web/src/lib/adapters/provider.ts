@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useAccount, usePublicClient, useWalletClient } from "wagmi";
+import { useConnection, usePublicClient, useWalletClient } from "wagmi";
 import { getAddress } from "viem";
 
 import {
@@ -9,6 +9,7 @@ import {
   isBlockOreConfigured,
 } from "@/lib/adapters/onchain-block-ore-adapter";
 import { useGameStore } from "@/store/game-store";
+import { wagmiConfig } from "../web3/wagmi-config";
 
 type TreasurySnapshotView = {
   usdcBalance: string;
@@ -32,7 +33,7 @@ type WithdrawalEntry = {
 };
 
 export function useBlockOreAdapter() {
-  const { address } = useAccount();
+  const { address } = useConnection(wagmiConfig as any);
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
   const chainId = useGameStore((s) => s.currentChainId) ?? 84532;

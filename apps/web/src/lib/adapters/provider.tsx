@@ -22,7 +22,6 @@ export function useBlockOreAdapter(): {
   setTreasury: OnchainBlockOreAdapter["setTreasury"];
   updatePickaxePrice: OnchainBlockOreAdapter["updatePickaxePrice"];
   configSettings: Record<string, string>;
-  getRecentActivity: OnchainBlockOreAdapter["getRecentActivity"];
 } {
   const { address, chain } = useAccount();
   const publicClient = usePublicClient();
@@ -52,11 +51,10 @@ export function useBlockOreAdapter(): {
   const defaultUsdcConfig = adapter?.getDefaultUsdcConfig() ?? null;
   const contractOwner = adapter?.contractOwner ?? null;
   const pickaxPrices = adapter?.pickaxePrices ?? {};
-  const setOwner = adapter?.setOwner ?? (async () => {});
-  const setTreasury = adapter?.setTreasury ?? (async () => {});
-  const updatePickaxePrice = adapter?.updatePickaxePrice ?? (async () => {});
+  const setOwner = adapter?.setOwner ?? (async () => { });
+  const setTreasury = adapter?.setTreasury ?? (async () => { });
+  const updatePickaxePrice = adapter?.updatePickaxePrice ?? (async () => { });
   const configSettings = adapter?.getConfigSettings() ?? {};
-  const getRecentActivity = adapter?.getRecentActivity ?? (async () => []);
 
   return {
     adapter,
@@ -72,7 +70,6 @@ export function useBlockOreAdapter(): {
     setTreasury,
     updatePickaxePrice,
     configSettings,
-    getRecentActivity,
   };
 }
 

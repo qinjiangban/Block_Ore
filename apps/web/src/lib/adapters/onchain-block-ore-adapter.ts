@@ -18,6 +18,7 @@ import { getContractAddresses } from "@/lib/contracts/addresses";
 import { oreMeta } from "@/lib/game-data";
 import { oreNftAbi } from "@/lib/contracts/abis/ore-nft";
 import type {
+  ActivityFeedItem,
   AdminPurchaseRecord,
   AdminWithdrawalRecord,
   LeaderboardEntry,
