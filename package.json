@@ -1,0 +1,19 @@
+{
+  "name": "block-ore",
+  "private": true,
+  "packageManager": "npm@11.6.1",
+  "scripts": {
+    "web:install": "npm install --prefix ./apps/web",
+    "web:dev": "npm --prefix ./apps/web run dev",
+    "web:lint": "npm --prefix ./apps/web run lint",
+    "web:test": "npm --prefix ./apps/web run test",
+    "web:build": "npm --prefix ./apps/web run build",
+    "web:check": "npm --prefix ./apps/web run check",
+    "contracts:install": "npm install --prefix ./contracts",
+    "contracts:sync:abi": "node ./scripts/sync-contract-artifacts.mjs",
+    "contracts:compile": "npm --prefix ./contracts run compile && npm run contracts:sync:abi",
+    "contracts:test": "npm --prefix ./contracts run test",
+    "contracts:deploy:sepolia": "npm --prefix ./contracts run deploy:sepolia && node ./scripts/sync-deployment-addresses.mjs sepolia",
+    "contracts:deploy:base": "npm --prefix ./contracts run deploy:base && node ./scripts/sync-deployment-addresses.mjs base"
+  }
+}
