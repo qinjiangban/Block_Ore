@@ -18,7 +18,7 @@ export function useWalletIdentity(address?: `0x${string}`) {
   });
 
   const { data: baseEnsAvatar } = useEnsAvatar({
-    name: baseEnsName ?? null,
+    name: baseEnsName ?? undefined,
     chainId: 8453,
     query: { enabled: Boolean(baseEnsName) },
   });
@@ -31,7 +31,7 @@ export function useWalletIdentity(address?: `0x${string}`) {
   });
 
   const { data: ethEnsAvatar } = useEnsAvatar({
-    name: ethEnsName ?? null,
+    name: ethEnsName ?? undefined,
     chainId: mainnet.id,
     query: { enabled: Boolean(ethEnsName) },
   });
