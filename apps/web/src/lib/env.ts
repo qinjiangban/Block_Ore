@@ -1,6 +1,6 @@
 export type BaseNetworkMode = "mainnet" | "sepolia";
 
-const DEFAULT_USDC_ADDRESSES = {
+export const DEFAULT_USDC_ADDRESSES = {
   base: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
   baseSepolia: "0x036CbD53842c5426634e7929541eC2318f3dCF7e",
 } as const;
@@ -43,12 +43,6 @@ export const blockOreEnv = {
   oreNftAddressBase: process.env.NEXT_PUBLIC_ORE_NFT_ADDRESS_BASE ?? "",
   oreNftAddressBaseSepolia:
     process.env.NEXT_PUBLIC_ORE_NFT_ADDRESS_BASE_SEPOLIA ?? "",
-  usdcAddressBase:
-    process.env.NEXT_PUBLIC_USDC_ADDRESS_BASE ??
-    DEFAULT_USDC_ADDRESSES.base,
-  usdcAddressBaseSepolia:
-    process.env.NEXT_PUBLIC_USDC_ADDRESS_BASE_SEPOLIA ??
-    DEFAULT_USDC_ADDRESSES.baseSepolia,
 };
 
 export const isPrivyConfigured = Boolean(blockOreEnv.privyAppId);

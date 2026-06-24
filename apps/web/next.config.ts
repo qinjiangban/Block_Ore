@@ -31,6 +31,7 @@ const webpackAliases = Object.fromEntries(
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   turbopack: {
+    root: path.resolve(__dirname),
     resolveAlias: turbopackAliases,
   },
   webpack: (config) => {

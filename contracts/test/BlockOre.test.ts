@@ -1,85 +1,107 @@
-import { expect } from "chai";
-import { ethers } from "hardhat";
-import { BlockOre, MockUSDC, OreNFT } from "../typechain-types";
-import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
+import { describe, it } from "node:test";
+import { strict as assert } from "node:assert/strict";
+import hre from "hardhat";
 
-describe("BlockOre", function () {
-  let blockOre: BlockOre;
-  let oreNft: OreNFT;
-  let usdc: MockUSDC;
-  let owner: SignerWithAddress;
-  let treasury: SignerWithAddress;
-  let miner: SignerWithAddress;
+const { viem, networkHelpers } = await hre.network.getOrCreate();
 
-  beforeEach(async function () {
-    [owner, treasury, miner] = await ethers.getSigners();
+describe("BlockOre", async function () {
+  async function deployFixture() {
+    const [ownerClient, treasuryClient, minerClient] =
+      await viem.getWalletClients();
 
-    const MockUSDC = await ethers.getContractFactory("MockUSDC");
-    usdc = await MockUSDC.deploy();
-    await usdc.waitForDeployment();
+    const usdc = await viem.deployContract("MockUSDC");
+    const oreNft = await viem.deployContract("OreNFT", [
+      ownerClient.account.address,
+      "ipfs://block-ore/",
+    ]);
+    const blockOre = await viem.deployContract("BlockOre", [
+      ownerClient.account.address,
+      treasuryClient.account.address,
+      oreNft.address,
+      usdc.address,
+    ]);
 
-    const OreNFT = await ethers.getContractFactory("OreNFT");
-    oreNft = await OreNFT.deploy(owner.address, "ipfs://block-ore/");
-    await oreNft.waitForDeployment();
+    await oreNft.write.setMinter([blockOre.address], {
+      account: ownerClient.account,
+    });
+    await usdc.write.mint([minerClient.account.address, 100_000_000n], {
+      account: minerClient.account,
+    });
 
-    const BlockOre = await ethers.getContractFactory("BlockOre");
-    blockOre = await BlockOre.deploy(
-      owner.address,
-      treasury.address,
-      await oreNft.getAddress(),
-      await usdc.getAddress(),
-    );
-    await blockOre.waitForDeployment();
-
-    await oreNft.setMinter(await blockOre.getAddress());
-    await usdc.mint(miner.address, 100_000_000);
-  });
+    return { blockOre, oreNft, usdc, ownerClient, treasuryClient, minerClient };
+  }
 
   it("buyMiningPass adds paid mines", async function () {
-    await usdc
-      .connect(miner)
-      .approve(await blockOre.getAddress(), 8_990_000);
-    await blockOre.connect(miner).buyMiningPass(1);
+    const { blockOre, usdc, minerClient } =
+      await networkHelpers.loadFixture(deployFixture);
 
-    const stats = await blockOre.getUserStats(miner.address);
-    expect(stats.remainingPaidMines).to.equal(50);
-    expect(await blockOre.usdcTreasuryBalance()).to.equal(8_990_000);
-    expect(
-      await usdc.balanceOf(await blockOre.getAddress()),
-    ).to.equal(8_990_000);
+    await usdc.write.approve([blockOre.address, 8_990_000n], {
+      account: minerClient.account,
+    });
+    await blockOre.write.buyMiningPass([1], {
+      account: minerClient.account,
+    });
+
+    const stats = await blockOre.read.getUserStats([
+      minerClient.account.address,
+    ]);
+    assert.strictEqual(stats.remainingPaidMines, 50n);
+    assert.strictEqual(await blockOre.read.usdcTreasuryBalance(), 8_990_000n);
   });
 
   it("mine consumes free quota", async function () {
-    await blockOre.connect(miner).mine();
-    const stats = await blockOre.getUserStats(miner.address);
-    expect(stats.remainingFreeMines).to.equal(9);
+    const { blockOre, minerClient } =
+      await networkHelpers.loadFixture(deployFixture);
+
+    await blockOre.write.mine({ account: minerClient.account });
+
+    const stats = await blockOre.read.getUserStats([
+      minerClient.account.address,
+    ]);
+    assert.strictEqual(stats.remainingFreeMines, 9n);
   });
 
   it("reveal updates points and total mines", async function () {
-    await blockOre.connect(miner).mine();
-    const nonce = await blockOre.latestNonce(miner.address);
+    const { blockOre, minerClient } =
+      await networkHelpers.loadFixture(deployFixture);
 
-    // Advance past REVEAL_DELAY_BLOCKS (3)
+    await blockOre.write.mine({ account: minerClient.account });
+    const nonce = await blockOre.read.latestNonce([
+      minerClient.account.address,
+    ]);
+
     for (let i = 0; i < 4; i++) {
-      await ethers.provider.send("evm_mine", []);
+      await networkHelpers.mine();
     }
 
-    await blockOre.connect(miner).reveal(nonce);
+    await blockOre.write.reveal([nonce], { account: minerClient.account });
 
-    const stats = await blockOre.getUserStats(miner.address);
-    expect(stats.totalMines).to.equal(1);
-    expect(stats.points).to.be.greaterThan(0);
+    const stats = await blockOre.read.getUserStats([
+      minerClient.account.address,
+    ]);
+    assert.strictEqual(stats.totalMines, 1n);
+    assert.ok(stats.points > 0n);
   });
 
   it("withdrawTreasury transfers USDC to treasury", async function () {
-    await usdc
-      .connect(miner)
-      .approve(await blockOre.getAddress(), 1_990_000);
-    await blockOre.connect(miner).buyMiningPass(0);
+    const { blockOre, usdc, ownerClient, treasuryClient, minerClient } =
+      await networkHelpers.loadFixture(deployFixture);
 
-    await blockOre.connect(owner).withdrawTreasury(1_990_000);
+    await usdc.write.approve([blockOre.address, 1_990_000n], {
+      account: minerClient.account,
+    });
+    await blockOre.write.buyMiningPass([0], {
+      account: minerClient.account,
+    });
 
-    expect(await usdc.balanceOf(treasury.address)).to.equal(1_990_000);
-    expect(await blockOre.usdcTreasuryBalance()).to.equal(0);
+    await blockOre.write.withdrawTreasury([1_990_000n], {
+      account: ownerClient.account,
+    });
+
+    assert.strictEqual(
+      await usdc.read.balanceOf([treasuryClient.account.address]),
+      1_990_000n,
+    );
+    assert.strictEqual(await blockOre.read.usdcTreasuryBalance(), 0n);
   });
 });

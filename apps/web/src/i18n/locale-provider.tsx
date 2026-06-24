@@ -27,7 +27,20 @@ export function LocaleProvider({
   initialLocale?: Locale;
   initialMessages?: AbstractIntlMessages;
 }>) {
-  const locale = useLocaleStore((s) => s.locale);
+  const storeLocale = useLocaleStore((s) => s.locale);
+  const setLocale = useLocaleStore((s) => s.setLocale);
+
+  // Sync server locale to store on first mount to prevent hydration mismatch
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    if (initialLocale && initialLocale !== storeLocale) {
+      setLocale(initialLocale);
+    }
+    setHydrated(true);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Use initialLocale during SSR/first paint, switch to store after hydration
+  const locale = !hydrated && initialLocale ? initialLocale : storeLocale;
   const [messages, setMessages] = useState<AbstractIntlMessages | null>(
     initialMessages ?? null,
   );
@@ -40,7 +53,7 @@ export function LocaleProvider({
     <NextIntlClientProvider
       locale={locale}
       messages={messages ?? {}}
-      onError={() => {}}
+      onError={() => { }}
       getMessageFallback={({ key }) => key}
     >
       {children}

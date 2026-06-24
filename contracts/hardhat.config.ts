@@ -1,36 +1,42 @@
-import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox";
-import * as dotenv from "dotenv";
+import { defineConfig, configVariable } from "hardhat/config";
+import hardhatViem from "@nomicfoundation/hardhat-viem";
+import hardhatViemAssertions from "@nomicfoundation/hardhat-viem-assertions";
+import hardhatNodeTestRunner from "@nomicfoundation/hardhat-node-test-runner";
+import hardhatNetworkHelpers from "@nomicfoundation/hardhat-network-helpers";
 
-dotenv.config();
+const PRIVATE_KEY = configVariable("PRIVATE_KEY");
 
-const config: HardhatUserConfig = {
+export default defineConfig({
+  plugins: [
+    hardhatViem,
+    hardhatViemAssertions,
+    hardhatNodeTestRunner,
+    hardhatNetworkHelpers,
+  ],
   solidity: {
-    version: "0.8.24",
+    version: "0.8.29",
     settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200,
-      },
-      evmVersion: "cancun",
+      evmVersion: "osaka",
+      optimizer: { enabled: true, runs: 200 },
     },
   },
   networks: {
-    base: {
-      url: process.env.BASE_RPC_URL || "",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+    hardhat: {
+      type: "edr-simulated",
+      chainType: "l1",
+      hardfork: "osaka",
     },
     baseSepolia: {
-      url: process.env.BASE_SEPOLIA_RPC_URL || "",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      type: "http",
+      chainType: "generic",
+      url: configVariable("BASE_SEPOLIA_RPC_URL"),
+      accounts: [PRIVATE_KEY],
+    },
+    base: {
+      type: "http",
+      chainType: "generic",
+      url: configVariable("BASE_RPC_URL"),
+      accounts: [PRIVATE_KEY],
     },
   },
-  etherscan: {
-    apiKey: {
-      base: process.env.BASESCAN_API_KEY || "",
-      baseSepolia: process.env.BASESCAN_API_KEY || "",
-    },
-  },
-};
-
-export default config;
+});
