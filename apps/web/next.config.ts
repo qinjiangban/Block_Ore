@@ -8,15 +8,9 @@ const turbopackAliases = {
   "@farcaster/mini-app-solana": "./src/lib/shims/empty-module.ts",
   "@react-native-async-storage/async-storage":
     "./src/lib/shims/empty-module.ts",
-  "@solana/kit": "./src/lib/shims/solana-kit.ts",
-  "@solana-program/memo": "./src/lib/shims/solana-memo.ts",
-  "@solana-program/system": "./src/lib/shims/solana-system.ts",
-  "@solana-program/token": "./src/lib/shims/solana-token.ts",
-  "@solana/wallet-standard-features": "./src/lib/shims/empty-module.ts",
   "@wallet-standard/app": "./src/lib/shims/wallet-standard-app.ts",
   "@wallet-standard/base": "./src/lib/shims/empty-module.ts",
   "@wallet-standard/features": "./src/lib/shims/empty-module.ts",
-  "@stripe/crypto": "./src/lib/shims/empty-module.ts",
   "x402/client": "./src/lib/shims/x402-client.ts",
   "x402/types": "./src/lib/shims/empty-module.ts",
 } as const;

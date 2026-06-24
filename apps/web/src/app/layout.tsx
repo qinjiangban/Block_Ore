@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Manrope, Oxanium, Geist } from "next/font/google";
 import { AppProviders } from "@/components/providers/app-providers";
-import { LocaleProvider } from "@/i18n/locale-provider";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { getLocale } from "next-intl/server";
 import type { Locale } from "@/i18n/constants";
+import { LocaleProvider } from "@/i18n/locale-provider";
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' });
 

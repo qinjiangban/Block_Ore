@@ -1,8 +1,7 @@
 import { getRequestConfig } from "next-intl/server";
-import { cookies, headers } from "next/headers";
+import { cookies } from "next/headers";
 import type { Locale } from "./constants";
 import { defaultLocale } from "./constants";
-import { detectLocaleFromHeaders } from "./detect";
 
 const legacyMap: Record<string, Locale> = {
   "zh-CN": "zh-Hans",
@@ -11,11 +10,11 @@ const legacyMap: Record<string, Locale> = {
 
 export default getRequestConfig(async () => {
   const cookieStore = await cookies();
-  const rawLocale = cookieStore.get("locale")?.value as Locale | undefined;
+  const rawLocale = cookieStore.get("NEXT_LOCALE")?.value as Locale | undefined;
 
   const locale: Locale = rawLocale
     ? ((legacyMap[rawLocale] ?? rawLocale) as Locale)
-    : detectLocaleFromHeaders((await headers()).get("accept-language"));
+    : defaultLocale;
 
   return {
     locale,
