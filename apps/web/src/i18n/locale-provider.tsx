@@ -19,23 +19,28 @@ function loadMessages(locale: Locale): Promise<AbstractIntlMessages> {
   });
 }
 
-export function LocaleProvider({ children }: PropsWithChildren) {
+export function LocaleProvider({
+  children,
+  initialLocale,
+  initialMessages,
+}: PropsWithChildren<{
+  initialLocale?: Locale;
+  initialMessages?: AbstractIntlMessages;
+}>) {
   const locale = useLocaleStore((s) => s.locale);
-  const [messages, setMessages] = useState<AbstractIntlMessages | null>(null);
+  const [messages, setMessages] = useState<AbstractIntlMessages | null>(
+    initialMessages ?? null,
+  );
 
   useEffect(() => {
     loadMessages(locale).then(setMessages);
   }, [locale]);
 
-  // During SSR / initial render, provide a no-op formatting fallback
-  // so useTranslations doesn't throw MISSING_MESSAGE errors
   return (
     <NextIntlClientProvider
       locale={locale}
       messages={messages ?? {}}
-      onError={() => {
-        // Suppress missing message errors during SSR
-      }}
+      onError={() => {}}
       getMessageFallback={({ key }) => key}
     >
       {children}

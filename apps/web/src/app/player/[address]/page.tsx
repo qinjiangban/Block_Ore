@@ -226,16 +226,14 @@ export default function PlayerProfilePage() {
               {achievementsFromStats(stats).map((achievement) => (
                 <div
                   key={achievement.key}
-                  className={`rounded-2xl border p-3 ${
-                    achievement.unlocked
-                      ? "border-green-500/30 bg-green-500/10"
-                      : "border-white/[0.06] bg-white/[0.03] opacity-50"
-                  }`}
+                  className={`rounded-2xl border p-3 ${achievement.unlocked
+                    ? "border-green-500/30 bg-green-500/10"
+                    : "border-white/[0.06] bg-white/[0.03] opacity-50"
+                    }`}
                 >
                   <div className="flex items-center justify-between">
-                    <p className={`text-sm font-medium ${
-                      achievement.unlocked ? "text-green-300" : "text-white/50"
-                    }`}>
+                    <p className={`text-sm font-medium ${achievement.unlocked ? "text-green-300" : "text-white/50"
+                      }`}>
                       {achievement.title}
                     </p>
                     {achievement.unlocked && (
@@ -279,11 +277,10 @@ export default function PlayerProfilePage() {
                     <p className="mt-0.5 text-xs text-white/35">Token ID: {nft.tokenId}</p>
                   </div>
                   <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                      nft.oreType === "GENESIS"
-                        ? "bg-cyan-500/20 text-cyan-300"
-                        : "bg-violet-500/20 text-violet-300"
-                    }`}
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${nft.oreType === "GENESIS"
+                      ? "bg-cyan-500/20 text-cyan-300"
+                      : "bg-violet-500/20 text-violet-300"
+                      }`}
                   >
                     {nft.oreType}
                   </span>
