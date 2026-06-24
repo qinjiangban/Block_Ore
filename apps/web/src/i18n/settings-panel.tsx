@@ -10,8 +10,8 @@ import {
   Settings,
   ChevronLeft,
 } from "lucide-react";
-import { useSettingsStore } from "@/store/settings-store";
-import { useLocaleStore } from "./locale-store";
+import { useLocale } from "next-intl";
+import { useSettingsContext } from "@/store/settings-context";
 import { locales, localeLabels, type Locale } from "./constants";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -21,12 +21,8 @@ type SettingsView = "main" | "language";
 export function SettingsPanel() {
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<SettingsView>("main");
-  const locale = useLocaleStore((s) => s.locale);
-  const setLocale = useLocaleStore((s) => s.setLocale);
-  const musicEnabled = useSettingsStore((s) => s.musicEnabled);
-  const soundEnabled = useSettingsStore((s) => s.soundEnabled);
-  const setMusic = useSettingsStore((s) => s.setMusic);
-  const setSound = useSettingsStore((s) => s.setSound);
+  const currentLocale = useLocale() as Locale;
+  const { musicEnabled, soundEnabled, setMusic, setSound } = useSettingsContext();
 
   const handleClose = () => {
     setOpen(false);
@@ -34,7 +30,9 @@ export function SettingsPanel() {
   };
 
   const handleSelectLang = (next: Locale) => {
-    setLocale(next);
+    // Set cookie and reload — next-intl picks it up server-side
+    document.cookie = `NEXT_LOCALE=${next};path=/;max-age=31536000;SameSite=Lax`;
+    window.location.reload();
     setView("main");
   };
 
@@ -66,7 +64,7 @@ export function SettingsPanel() {
                 >
                   <Globe className="h-3.5 w-3.5" />
                   <span className="flex-1 text-left">Language</span>
-                  <span className="text-white/40">{localeLabels[locale]}</span>
+                  <span className="text-white/40">{localeLabels[currentLocale]}</span>
                 </button>
 
                 {/* 音乐 */}
@@ -161,7 +159,7 @@ export function SettingsPanel() {
                     onClick={() => handleSelectLang(l)}
                     className={cn(
                       "flex w-full items-center gap-2 rounded-xl px-2 py-2.5 text-xs transition",
-                      locale === l
+                      currentLocale === l
                         ? "bg-[#00D4FF]/10 text-[#00D4FF]"
                         : "text-white/50 hover:bg-white/5 hover:text-white",
                     )}

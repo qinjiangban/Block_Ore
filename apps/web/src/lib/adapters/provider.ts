@@ -8,7 +8,7 @@ import {
   createOnchainBlockOreAdapter,
   isBlockOreConfigured,
 } from "@/lib/adapters/onchain-block-ore-adapter";
-import { useGameStore } from "@/store/game-store";
+import { useGameContext } from "@/store/game-context";
 import { wagmiConfig } from "../web3/wagmi-config";
 
 type TreasurySnapshotView = {
@@ -36,7 +36,8 @@ export function useBlockOreAdapter() {
   const { address } = useConnection(wagmiConfig as any);
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
-  const chainId = useGameStore((s) => s.currentChainId) ?? 84532;
+  const { currentChainId: chainId } = useGameContext();
+  const resolvedChainId = chainId ?? 84532;
 
   const [treasurySnapshot, setTreasurySnapshot] =
     useState<TreasurySnapshotView | null>(null);
@@ -48,11 +49,11 @@ export function useBlockOreAdapter() {
   const [contractReady, setContractReady] = useState(false);
 
   const adapter = useMemo(() => {
-    if (!publicClient || !chainId || !isBlockOreConfigured(chainId))
+    if (!publicClient || !resolvedChainId || !isBlockOreConfigured(resolvedChainId))
       return null;
 
     return createOnchainBlockOreAdapter({
-      chainId,
+      chainId: resolvedChainId,
       publicClient,
       walletAddress: address,
       walletClient: walletClient ?? undefined,

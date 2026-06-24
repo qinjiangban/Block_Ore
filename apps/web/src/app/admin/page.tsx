@@ -20,7 +20,7 @@ import type {
 } from "@/lib/types";
 import { activeChain } from "@/lib/web3/chains";
 import { shortenAddress } from "@/lib/utils";
-import { useGameStore } from "@/store/game-store";
+import { useGameContext } from "@/store/game-context";
 
 const formatUsdc = (value: bigint) => `${formatUnits(value, 6)} USDC`;
 const formatEth = (value: bigint) => `${formatUnits(value, 18)} ETH`;
@@ -223,9 +223,7 @@ function AdminPageView({
 
 function RealAdminPage() {
   const t = useTranslations("admin");
-  const currentWallet = useGameStore((state) => state.currentWallet);
-  const currentChainId = useGameStore((state) => state.currentChainId);
-  const pushToast = useGameStore((state) => state.pushToast);
+  const { currentWallet, currentChainId, pushToast } = useGameContext();
   const publicClient = usePublicClient({ chainId: currentChainId ?? activeChain.id });
   const { data: walletClient } = useWalletClient({ chainId: currentChainId ?? activeChain.id });
   const [snapshot, setSnapshot] = useState<TreasurySnapshot>();

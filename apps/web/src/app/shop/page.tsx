@@ -19,7 +19,7 @@ import {
 } from "@/lib/adapters/onchain-block-ore-adapter";
 import type { PickaxeTier, PurchaseReceipt, UserStats } from "@/lib/types";
 import { activeChain } from "@/lib/web3/chains";
-import { useGameStore } from "@/store/game-store";
+import { useGameContext } from "@/store/game-context";
 
 const getErrorMessage = (error: unknown) => {
   if (error instanceof Error) {
@@ -100,12 +100,7 @@ function ShopPageView({
 
 function MockShopPage() {
   const t = useTranslations("shop");
-  const stats = useGameStore((state) => state.stats);
-  const currentWallet = useGameStore((state) => state.currentWallet);
-  const latestReceipt = useGameStore((state) => state.latestReceipt);
-  const connectWallet = useGameStore((state) => state.connectWallet);
-  const buyPickaxe = useGameStore((state) => state.buyPickaxe);
-  const clearLatestReceipt = useGameStore((state) => state.clearLatestReceipt);
+  const { stats, currentWallet, latestReceipt, connectWallet, buyPickaxe, clearLatestReceipt } = useGameContext();
 
   const handleBuy = (tier: "basic" | "advanced" | "diamond") => {
     if (!currentWallet) {
@@ -135,14 +130,7 @@ function MockShopPage() {
 
 function RealShopPage() {
   const t = useTranslations("shop");
-  const currentWallet = useGameStore((state) => state.currentWallet);
-  const currentChainId = useGameStore((state) => state.currentChainId);
-  const latestReceipt = useGameStore((state) => state.latestReceipt);
-  const stats = useGameStore((state) => state.stats);
-  const clearLatestReceipt = useGameStore((state) => state.clearLatestReceipt);
-  const setStats = useGameStore((state) => state.setStats);
-  const setLatestReceipt = useGameStore((state) => state.setLatestReceipt);
-  const pushToast = useGameStore((state) => state.pushToast);
+  const { currentWallet, currentChainId, latestReceipt, stats, clearLatestReceipt, setStats, setLatestReceipt, pushToast } = useGameContext();
   const publicClient = usePublicClient({ chainId: currentChainId ?? activeChain.id });
   const { data: walletClient } = useWalletClient({ chainId: currentChainId ?? activeChain.id });
   const [allowance, setAllowance] = useState<bigint>(0n);

@@ -10,14 +10,11 @@ import { LeaderboardTabs } from "@/components/leaderboard-tabs";
 import { createOnchainBlockOreAdapter, isBlockOreConfigured } from "@/lib/adapters/onchain-block-ore-adapter";
 import type { LeaderboardEntry } from "@/lib/types";
 import { activeChain } from "@/lib/web3/chains";
-import { useGameStore } from "@/store/game-store";
+import { useGameContext } from "@/store/game-context";
 
 export default function LeaderboardPage() {
   const t = useTranslations("leaderboard");
-  const tab = useGameStore((state) => state.selectedLeaderboardTab);
-  const selectLeaderboardTab = useGameStore((state) => state.selectLeaderboardTab);
-  const currentWallet = useGameStore((state) => state.currentWallet);
-  const currentChainId = useGameStore((state) => state.currentChainId);
+  const { selectedLeaderboardTab: tab, selectLeaderboardTab, currentWallet, currentChainId } = useGameContext();
   const publicClient = usePublicClient({ chainId: currentChainId ?? activeChain.id });
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
 

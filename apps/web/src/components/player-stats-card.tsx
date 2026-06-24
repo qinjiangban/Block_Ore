@@ -5,12 +5,12 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 
 import { Panel } from "@/components/app-shell";
-import { useGameStore } from "@/store/game-store";
+import { useGameContext } from "@/store/game-context";
 import { formatNumber } from "@/lib/utils";
 
 export function PlayerStatsCard() {
   const t = useTranslations("playerStats");
-  const stats = useGameStore((state) => state.stats);
+  const { stats } = useGameContext();
 
   return (
     <Panel className="overflow-hidden bg-[radial-gradient(circle_at_top_right,rgba(77,168,255,0.24),transparent_32%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.03))]">

@@ -5,7 +5,7 @@ import { CheckCircle2, CircleAlert, Info, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { cn } from "@/lib/utils";
-import { useGameStore } from "@/store/game-store";
+import { useGameContext } from "@/store/game-context";
 
 const toneStyles = {
   info: "border-cobalt/25 bg-cobalt/10 text-cobalt",
@@ -21,8 +21,7 @@ const toneIcons = {
 
 export function ToastStack() {
   const t = useTranslations("wallet");
-  const toasts = useGameStore((state) => state.toasts);
-  const dismissToast = useGameStore((state) => state.dismissToast);
+  const { toasts, dismissToast } = useGameContext();
 
   useEffect(() => {
     if (toasts.length === 0) {

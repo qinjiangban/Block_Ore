@@ -14,16 +14,12 @@ import { createOnchainBlockOreAdapter, isBlockOreConfigured } from "@/lib/adapte
 import { achievementsFromStats } from "@/lib/game-data";
 import type { Achievement, OwnedNftAsset, UserStats } from "@/lib/types";
 import { activeChain } from "@/lib/web3/chains";
-import { useGameStore } from "@/store/game-store";
+import { useGameContext } from "@/store/game-context";
 
 export default function InventoryPage() {
   const t = useTranslations("inventory");
   const { configured } = useWalletMode();
-  const currentWallet = useGameStore((state) => state.currentWallet);
-  const currentChainId = useGameStore((state) => state.currentChainId);
-  const storeStats = useGameStore((state) => state.stats);
-  const storeAchievements = useGameStore((state) => state.achievements);
-  const setStats = useGameStore((state) => state.setStats);
+  const { currentWallet, currentChainId, stats: storeStats, achievements: storeAchievements, setStats } = useGameContext();
   const publicClient = usePublicClient({ chainId: currentChainId ?? activeChain.id });
   const { data: walletClient } = useWalletClient({ chainId: currentChainId ?? activeChain.id });
   const [stats, setLocalStats] = useState<UserStats | undefined>(storeStats);

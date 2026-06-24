@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import { useAccount, usePublicClient, useWalletClient } from "wagmi";
 
-import { useGameStore } from "@/store/game-store";
 import { createOnchainBlockOreAdapter } from "@/lib/adapters/onchain-block-ore-adapter";
 import type { OnchainBlockOreAdapter } from "@/lib/adapters/onchain-block-ore-adapter";
 import { isBlockOreConfigured } from "@/lib/adapters/onchain-block-ore-adapter";

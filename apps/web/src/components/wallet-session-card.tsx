@@ -8,7 +8,7 @@ import { useAccount, useSwitchChain } from "wagmi";
 import { useTranslations } from "next-intl";
 
 import { useWalletMode } from "@/components/providers/app-providers";
-import { useGameStore } from "@/store/game-store";
+import { useGameContext } from "@/store/game-context";
 import { shortenAddress } from "@/lib/utils";
 import { useWalletIdentity } from "@/lib/web3/use-wallet-identity";
 import {
@@ -28,7 +28,7 @@ function WalletDropdown({
   const { logout } = usePrivy();
   const { chain } = useAccount();
   const { switchChain } = useSwitchChain();
-  const stats = useGameStore((state) => state.stats);
+  const { stats } = useGameContext();
   const { displayName, avatarUrl } = useWalletIdentity(address);
 
   const currentId = chain?.id;
@@ -84,11 +84,10 @@ function WalletDropdown({
                 }
                 onClose();
               }}
-              className={`flex w-full items-center gap-2 rounded-xl px-2 py-2 text-xs transition ${
-                active
-                  ? "bg-[#00D4FF]/10 text-[#00D4FF]"
-                  : "text-white/50 hover:bg-white/5 hover:text-white"
-              }`}
+              className={`flex w-full items-center gap-2 rounded-xl px-2 py-2 text-xs transition ${active
+                ? "bg-[#00D4FF]/10 text-[#00D4FF]"
+                : "text-white/50 hover:bg-white/5 hover:text-white"
+                }`}
             >
               <span
                 className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
@@ -200,9 +199,7 @@ function RealWalletSessionCard() {
 
 function MockConnectedButton() {
   const t = useTranslations("wallet");
-  const currentWallet = useGameStore((state) => state.currentWallet);
-  const disconnectWallet = useGameStore((state) => state.disconnectWallet);
-  const stats = useGameStore((state) => state.stats);
+  const { currentWallet, disconnectWallet, stats } = useGameContext();
   const [open, setOpen] = useState(false);
   const handleClose = useCallback(() => setOpen(false), []);
 
@@ -256,8 +253,7 @@ function MockConnectedButton() {
 
 function MockWalletSessionCard() {
   const t = useTranslations("wallet");
-  const currentWallet = useGameStore((state) => state.currentWallet);
-  const connectWallet = useGameStore((state) => state.connectWallet);
+  const { currentWallet, connectWallet } = useGameContext();
 
   if (currentWallet) {
     return <MockConnectedButton />;

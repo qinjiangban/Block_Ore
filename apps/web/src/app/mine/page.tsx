@@ -19,7 +19,7 @@ import {
 } from "@/lib/adapters/onchain-block-ore-adapter";
 import type { MineSession, RevealReward, UserStats } from "@/lib/types";
 import { activeChain } from "@/lib/web3/chains";
-import { useGameStore } from "@/store/game-store";
+import { useGameContext } from "@/store/game-context";
 
 const getErrorMessage = (error: unknown) => {
   if (error instanceof Error) {
@@ -120,16 +120,18 @@ function MinePageView({
 }
 
 function MockMinePage() {
-  const currentWallet = useGameStore((state) => state.currentWallet);
-  const currentBlock = useGameStore((state) => state.currentBlock);
-  const latestMine = useGameStore((state) => state.latestMine);
-  const lastReward = useGameStore((state) => state.lastReward);
-  const stats = useGameStore((state) => state.stats);
-  const connectWallet = useGameStore((state) => state.connectWallet);
-  const startMining = useGameStore((state) => state.startMining);
-  const setMineWaiting = useGameStore((state) => state.setMineWaiting);
-  const tickMineBlock = useGameStore((state) => state.tickMineBlock);
-  const revealLatestMine = useGameStore((state) => state.revealLatestMine);
+  const {
+    currentWallet,
+    currentBlock,
+    latestMine,
+    lastReward,
+    stats,
+    connectWallet,
+    startMining,
+    setMineWaiting,
+    tickMineBlock,
+    revealLatestMine,
+  } = useGameContext();
   const [mining, setMining] = useState(false);
   const [toast, setToast] = useState<string>("Tap the crystal to start today's mining cycle.");
 
@@ -189,18 +191,21 @@ function MockMinePage() {
 }
 
 function RealMinePage() {
-  const currentWallet = useGameStore((state) => state.currentWallet);
-  const currentChainId = useGameStore((state) => state.currentChainId);
-  const currentBlock = useGameStore((state) => state.currentBlock);
-  const latestMine = useGameStore((state) => state.latestMine);
-  const lastReward = useGameStore((state) => state.lastReward);
-  const stats = useGameStore((state) => state.stats);
-  const setStats = useGameStore((state) => state.setStats);
-  const setLatestMineSession = useGameStore((state) => state.setLatestMineSession);
-  const setLastReward = useGameStore((state) => state.setLastReward);
-  const setCurrentBlock = useGameStore((state) => state.setCurrentBlock);
-  const prependActivity = useGameStore((state) => state.prependActivity);
-  const pushToast = useGameStore((state) => state.pushToast);
+  const ctx = useGameContext();
+  const {
+    currentWallet,
+    currentChainId,
+    currentBlock,
+    latestMine,
+    lastReward,
+    stats,
+    setStats,
+    setLatestMineSession,
+    setLastReward,
+    setCurrentBlock,
+    prependActivity,
+    pushToast,
+  } = ctx;
   const publicClient = usePublicClient({ chainId: currentChainId ?? activeChain.id });
   const { data: walletClient } = useWalletClient({ chainId: currentChainId ?? activeChain.id });
   const [mining, setMining] = useState(false);
@@ -242,7 +247,7 @@ function RealMinePage() {
 
         setStats(nextStats);
         setCurrentBlock(blockNumber);
-        if (nextMine || useGameStore.getState().latestMine?.status !== "done") {
+        if (nextMine || ctx.getState().latestMine?.status !== "done") {
           setLatestMineSession(nextMine);
         }
       } catch (error) {
@@ -275,7 +280,7 @@ function RealMinePage() {
 
         setCurrentBlock(blockNumber);
 
-        const snapshot = useGameStore.getState().latestMine;
+        const snapshot = ctx.getState().latestMine;
         if (!snapshot || !["waiting", "revealable"].includes(snapshot.status)) {
           return;
         }

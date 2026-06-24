@@ -3,23 +3,21 @@
 import {
   createContext,
   useContext,
-  useEffect,
   useMemo,
   type PropsWithChildren,
 } from "react";
 import { dataSuffix, PrivyProvider } from "@privy-io/react-auth";
 import { WagmiProvider } from "@privy-io/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useAccount,useConnection } from "wagmi";
 import { Attribution } from 'ox/erc8021';
 import { blockOreEnv, isPrivyConfigured } from "@/lib/env";
 import {
   supportedChains,
   defaultChain,
-  getChainLabel,
 } from "@/lib/web3/chains";
 import { wagmiConfig } from "@/lib/web3/wagmi-config";
-import { useGameStore } from "@/store/game-store";
+import { GameProvider } from "@/store/game-context";
+import { SettingsProvider } from "@/store/settings-context";
 
 const queryClient = new QueryClient();
 
@@ -29,37 +27,32 @@ const WalletModeContext = createContext<{ configured: boolean }>({
 
 export const useWalletMode = () => useContext(WalletModeContext);
 
-function WalletSync({ children }: PropsWithChildren) {
-  const { address, chain } = useAccount();
-  const syncWalletSession = useGameStore((state) => state.syncWalletSession);
-
-  useEffect(() => {
-    syncWalletSession({
-      wallet: address,
-      chainId: chain?.id,
-      chainName: getChainLabel(chain?.id),
-    });
-  }, [address, chain?.id, syncWalletSession]);
-
-  return <>{children}</>;
-}
-
 export function AppProviders({ children }: PropsWithChildren) {
   const modeValue = useMemo(
     () => ({ configured: isPrivyConfigured }),
     [],
   );
 
+  const inner = (
+    <GameProvider>
+      <SettingsProvider>
+        {children}
+      </SettingsProvider>
+    </GameProvider>
+  );
+
   if (!isPrivyConfigured) {
     return (
       <WalletModeContext.Provider value={modeValue}>
-        {children}
+        {inner}
       </WalletModeContext.Provider>
     );
   }
+
   const ERC_8021_ATTRIBUTION_SUFFIX = Attribution.toDataSuffix({
-    codes: ['bc_kvfh7urx'] // Replace with your code from base.dev > Settings > Builder Codes
+    codes: ['bc_kvfh7urx']
   });
+
   return (
     <WalletModeContext.Provider value={modeValue}>
       <PrivyProvider
@@ -85,7 +78,7 @@ export function AppProviders({ children }: PropsWithChildren) {
       >
         <QueryClientProvider client={queryClient}>
           <WagmiProvider config={wagmiConfig}>
-            <WalletSync>{children}</WalletSync>
+            {inner}
           </WagmiProvider>
         </QueryClientProvider>
       </PrivyProvider>

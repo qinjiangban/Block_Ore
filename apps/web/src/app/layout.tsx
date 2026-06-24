@@ -34,11 +34,12 @@ export default async function RootLayout({
 }>) {
 
   const locale = (await getLocale()) as Locale;
+  const messages = (await import(`../../messages/${locale}.json`)).default;
+
   return (
     <html lang={locale} className={cn("font-sans", geist.variable)} suppressHydrationWarning>
       <body className={`${display.variable} ${body.variable}`}>
-
-        <LocaleProvider initialLocale={locale}>
+        <LocaleProvider locale={locale} messages={messages}>
           <AppProviders>
             {children}
           </AppProviders>
