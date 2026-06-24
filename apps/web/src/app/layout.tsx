@@ -27,15 +27,6 @@ export const metadata: Metadata = {
   },
 };
 
-async function loadMessages(locale: Locale) {
-  try {
-    return (await import(`../../messages/${locale}.json`)).default;
-  } catch {
-    const { defaultLocale } = await import("@/i18n/constants");
-    return (await import(`../../messages/${defaultLocale}.json`)).default;
-  }
-}
-
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -43,12 +34,11 @@ export default async function RootLayout({
 }>) {
 
   const locale = (await getLocale()) as Locale;
-  const messages = await loadMessages(locale);
   return (
     <html lang={locale} className={cn("font-sans", geist.variable)} suppressHydrationWarning>
       <body className={`${display.variable} ${body.variable}`}>
 
-        <LocaleProvider initialLocale={locale} initialMessages={messages}>
+        <LocaleProvider initialLocale={locale}>
           <AppProviders>
             {children}
           </AppProviders>

@@ -6,53 +6,52 @@ import type { AbstractIntlMessages } from "next-intl";
 import { useLocaleStore } from "./locale-store";
 import type { Locale } from "./constants";
 
-const messageCache = new Map<Locale, AbstractIntlMessages>();
+// 静态导入所有翻译，打包嵌入 bundle，无异步无网络请求
+// 服务端和客户端始终使用同一份数据，根除 hydration 不匹配
+import en from "../../messages/en.json";
+import zhCN from "../../messages/zh-Hans.json";
+import zhTW from "../../messages/zh-Hant.json";
+import ja from "../../messages/ja.json";
+import ko from "../../messages/ko.json";
+import fr from "../../messages/fr.json";
+import es from "../../messages/es.json";
 
-function loadMessages(locale: Locale): Promise<AbstractIntlMessages> {
-  const cached = messageCache.get(locale);
-  if (cached) return Promise.resolve(cached);
-
-  return import(`../../messages/${locale}.json`).then((mod) => {
-    const messages = mod.default as AbstractIntlMessages;
-    messageCache.set(locale, messages);
-    return messages;
-  });
-}
+const allMessages: Record<Locale, AbstractIntlMessages> = {
+  en,
+  "zh-Hans": zhCN,
+  "zh-Hant": zhTW,
+  ja,
+  ko,
+  fr,
+  es,
+};
 
 export function LocaleProvider({
   children,
   initialLocale,
-  initialMessages,
 }: PropsWithChildren<{
-  initialLocale?: Locale;
-  initialMessages?: AbstractIntlMessages;
+  initialLocale: Locale;
 }>) {
   const storeLocale = useLocaleStore((s) => s.locale);
   const setLocale = useLocaleStore((s) => s.setLocale);
 
-  // Sync server locale to store on first mount to prevent hydration mismatch
-  const [hydrated, setHydrated] = useState(false);
+  // 首次客户端渲染时，用服务端 locale 覆盖 store（防止 localStorage 持久化的旧值干扰）
+  const [synced, setSynced] = useState(false);
   useEffect(() => {
-    if (initialLocale && initialLocale !== storeLocale) {
+    if (!synced && initialLocale !== storeLocale) {
       setLocale(initialLocale);
     }
-    setHydrated(true);
+    setSynced(true);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Use initialLocale during SSR/first paint, switch to store after hydration
-  const locale = !hydrated && initialLocale ? initialLocale : storeLocale;
-  const [messages, setMessages] = useState<AbstractIntlMessages | null>(
-    initialMessages ?? null,
-  );
-
-  useEffect(() => {
-    loadMessages(locale).then(setMessages);
-  }, [locale]);
+  // SSR/首次渲染用服务端 locale；hydrate 完成后用 store locale（与用户设置联动）
+  const locale = !synced ? initialLocale : storeLocale;
+  const messages = allMessages[locale];
 
   return (
     <NextIntlClientProvider
       locale={locale}
-      messages={messages ?? {}}
+      messages={messages}
       onError={() => { }}
       getMessageFallback={({ key }) => key}
     >
