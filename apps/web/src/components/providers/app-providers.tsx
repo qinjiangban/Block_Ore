@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useMemo,
+  useState,
   type PropsWithChildren,
 } from "react";
 import { dataSuffix, PrivyProvider } from "@privy-io/react-auth";
@@ -19,8 +20,6 @@ import { wagmiConfig } from "@/lib/web3/wagmi-config";
 import { GameProvider } from "@/store/game-context";
 import { SettingsProvider } from "@/store/settings-context";
 
-const queryClient = new QueryClient();
-
 const WalletModeContext = createContext<{ configured: boolean }>({
   configured: false,
 });
@@ -28,6 +27,7 @@ const WalletModeContext = createContext<{ configured: boolean }>({
 export const useWalletMode = () => useContext(WalletModeContext);
 
 export function AppProviders({ children }: PropsWithChildren) {
+  const [queryClient] = useState(() => new QueryClient());
   const modeValue = useMemo(
     () => ({ configured: isPrivyConfigured }),
     [],

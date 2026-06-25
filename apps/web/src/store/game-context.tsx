@@ -88,18 +88,19 @@ type GameState = {
 
 const STORAGE_KEY = "block-ore-store";
 
-function loadInitialState(): GameState {
-  if (typeof window === "undefined") {
-    return {
-      achievements: [],
-      currentBlock: 0,
-      activity: [],
-      toasts: [],
-      selectedLeaderboardTab: "TOP_10",
-      inventoryModalOpen: false,
-      shopOpen: false,
-    };
-  }
+/** 服务端/客户端首次渲染统一用这个空状态，避免 hydration 不匹配 */
+const DEFAULT_INITIAL_STATE: GameState = {
+  achievements: [],
+  currentBlock: 0,
+  activity: [],
+  toasts: [],
+  selectedLeaderboardTab: "TOP_10",
+  inventoryModalOpen: false,
+  shopOpen: false,
+};
+
+function loadPersistedState(): Partial<GameState> {
+  if (typeof window === "undefined") return {};
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
@@ -115,24 +116,13 @@ function loadInitialState(): GameState {
         latestReceipt: parsed.latestReceipt,
         currentBlock: parsed.currentBlock ?? 0,
         activity: parsed.activity ?? [],
-        toasts: [],
         selectedLeaderboardTab: parsed.selectedLeaderboardTab ?? "TOP_10",
-        inventoryModalOpen: false,
-        shopOpen: false,
       };
     }
   } catch {
     // ignore corrupt data
   }
-  return {
-    achievements: [],
-    currentBlock: 0,
-    activity: [],
-    toasts: [],
-    selectedLeaderboardTab: "TOP_10",
-    inventoryModalOpen: false,
-    shopOpen: false,
-  };
+  return {};
 }
 
 function persistState(state: GameState) {
@@ -201,11 +191,17 @@ export function useGameContext(): GameContextType {
 // ─── Provider ──────────────────────────────────────────────────────
 
 export function GameProvider({ children }: PropsWithChildren) {
-  const initialState = useMemo(() => loadInitialState(), []);
-
-  const [state, dispatch] = useReducer(gameReducer, initialState);
+  const [state, dispatch] = useReducer(gameReducer, DEFAULT_INITIAL_STATE);
   const stateRef = useRef(state);
   stateRef.current = state;
+
+  // Hydrate from localStorage after mount (client-only, avoids SSR mismatch)
+  useEffect(() => {
+    const persisted = loadPersistedState();
+    if (persisted.currentWallet || persisted.stats || persisted.activity?.length) {
+      dispatch({ type: "HYDRATE", payload: persisted });
+    }
+  }, []);
 
   // Persist to localStorage on relevant changes
   useEffect(() => {
@@ -478,19 +474,20 @@ export function GameProvider({ children }: PropsWithChildren) {
 // ─── Reducer ───────────────────────────────────────────────────────
 
 type GameAction =
+  | { type: "HYDRATE"; payload: Partial<GameState> }
   | { type: "SET"; payload: Partial<GameState> }
   | { type: "SET_STATS"; payload: { stats: UserStats | undefined } }
   | { type: "CONNECT_WALLET"; payload: { currentWallet: `0x${string}` } }
   | { type: "DISCONNECT_WALLET" }
   | {
-      type: "START_MINING";
-      payload: {
-        oreType: OreType;
-        reward: RevealReward;
-        requestBlock: number;
-        stats: UserStats;
-      };
-    }
+    type: "START_MINING";
+    payload: {
+      oreType: OreType;
+      reward: RevealReward;
+      requestBlock: number;
+      stats: UserStats;
+    };
+  }
   | { type: "SET_MINE_WAITING" }
   | { type: "TICK_MINE_BLOCK" }
   | { type: "REVEAL_LATEST_MINE" }
@@ -501,6 +498,9 @@ type GameAction =
 
 function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
+    case "HYDRATE":
+      return { ...state, ...action.payload };
+
     case "SET":
       return { ...state, ...action.payload };
 

@@ -49,7 +49,11 @@ export function useBlockOreAdapter() {
   const [contractReady, setContractReady] = useState(false);
 
   const adapter = useMemo(() => {
-    if (!publicClient || !resolvedChainId || !isBlockOreConfigured(resolvedChainId))
+    if (
+      !publicClient ||
+      !resolvedChainId ||
+      !isBlockOreConfigured(resolvedChainId)
+    )
       return null;
 
     return createOnchainBlockOreAdapter({
@@ -116,10 +120,8 @@ export function useBlockOreAdapter() {
   }, [adapter, publicClient]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadData]);
 
   const withdrawTreasury = useCallback(
     async (amount: bigint) => {
