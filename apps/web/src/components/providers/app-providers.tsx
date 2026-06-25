@@ -60,8 +60,9 @@ export function AppProviders({ children }: PropsWithChildren) {
         clientId={blockOreEnv.privyClientId || undefined}
         config={{
           plugins: [dataSuffix(ERC_8021_ATTRIBUTION_SUFFIX)],
-          loginMethods: ["wallet", "email"],
+          loginMethods: ["wallet", "email", "google", "twitter", "github", "farcaster"],
           appearance: {
+            logo: "/logo.svg",
             theme: "dark",
             accentColor: "#00D4FF",
             walletChainType: "ethereum-only",

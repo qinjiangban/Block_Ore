@@ -11,8 +11,6 @@ const turbopackAliases = {
   "@wallet-standard/app": "./src/lib/shims/wallet-standard-app.ts",
   "@wallet-standard/base": "./src/lib/shims/empty-module.ts",
   "@wallet-standard/features": "./src/lib/shims/empty-module.ts",
-  "x402/client": "./src/lib/shims/x402-client.ts",
-  "x402/types": "./src/lib/shims/empty-module.ts",
 } as const;
 
 const webpackAliases = Object.fromEntries(
