@@ -210,6 +210,43 @@ export const createPurchaseReceipt = (
   createdAt: "刚刚",
 });
 
+/** eth_getLogs 大多数 RPC 限制单次查询块范围（Base Sepolia 限制 2000 块），分页查询绕过此限制 */
+const BLOCK_RANGE = 2000n;
+
+async function paginatedGetLogs(
+  client: PublicClient,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  params: {
+    address: Address;
+    event: any;
+    fromBlock?: bigint;
+    toBlock?: "latest";
+  },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): Promise<any[]> {
+  const currentBlock = await client.getBlockNumber();
+  const from = params.fromBlock ?? 0n;
+  const allLogs: Awaited<ReturnType<PublicClient["getLogs"]>> = [];
+
+  let start = from;
+  while (start < currentBlock) {
+    const end =
+      start + BLOCK_RANGE > currentBlock
+        ? currentBlock
+        : start + BLOCK_RANGE - 1n;
+    const chunk = await client.getLogs({
+      address: params.address,
+      event: params.event,
+      fromBlock: start,
+      toBlock: end,
+    });
+    allLogs.push(...chunk);
+    start = end + 1n;
+  }
+
+  return allLogs;
+}
+
 export const createOnchainBlockOreAdapter = ({
   chainId,
   publicClient,
@@ -635,7 +672,7 @@ export const createOnchainBlockOreAdapter = ({
       transactionHash?: string | undefined;
     };
 
-    const logs = await publicClient.getLogs({
+    const logs = await paginatedGetLogs(publicClient, {
       address,
       event: {
         type: "event",
@@ -646,8 +683,6 @@ export const createOnchainBlockOreAdapter = ({
               item.type === "event" && item.name === "MiningPassPurchased",
           )?.inputs ?? [],
       },
-      fromBlock: 0n,
-      toBlock: "latest",
     });
 
     const recentLogs = sortLogsDesc(logs as PurchaseLog[]).slice(0, limit);
@@ -686,7 +721,7 @@ export const createOnchainBlockOreAdapter = ({
     };
 
     const [usdcLogs, nativeLogs] = await Promise.all([
-      publicClient.getLogs({
+      paginatedGetLogs(publicClient, {
         address,
         event: {
           type: "event",
@@ -697,10 +732,8 @@ export const createOnchainBlockOreAdapter = ({
                 item.type === "event" && item.name === "TreasuryWithdrawn",
             )?.inputs ?? [],
         },
-        fromBlock: 0n,
-        toBlock: "latest",
       }),
-      publicClient.getLogs({
+      paginatedGetLogs(publicClient, {
         address,
         event: {
           type: "event",
@@ -711,8 +744,6 @@ export const createOnchainBlockOreAdapter = ({
                 item.type === "event" && item.name === "NativeBalanceWithdrawn",
             )?.inputs ?? [],
         },
-        fromBlock: 0n,
-        toBlock: "latest",
       }),
     ]);
 
@@ -759,7 +790,7 @@ export const createOnchainBlockOreAdapter = ({
   const getLeaderboardEntries = async (
     limit = 100,
   ): Promise<LeaderboardEntry[]> => {
-    const logs = await publicClient.getLogs({
+    const logs = await paginatedGetLogs(publicClient, {
       address,
       event: {
         type: "event",
@@ -769,8 +800,6 @@ export const createOnchainBlockOreAdapter = ({
             (item) => item.type === "event" && item.name === "MineRevealed",
           )?.inputs ?? [],
       },
-      fromBlock: 0n,
-      toBlock: "latest",
     });
 
     const wallets: Address[] = [
@@ -822,7 +851,7 @@ export const createOnchainBlockOreAdapter = ({
   };
 
   const getRecentActivity = async (limit = 20): Promise<ActivityFeedItem[]> => {
-    const logs = await publicClient.getLogs({
+    const logs = await paginatedGetLogs(publicClient, {
       address,
       event: {
         type: "event",
@@ -832,8 +861,6 @@ export const createOnchainBlockOreAdapter = ({
             (item) => item.type === "event" && item.name === "MineRevealed",
           )?.inputs ?? [],
       },
-      fromBlock: 0n,
-      toBlock: "latest",
     });
 
     type RevealLog = {
