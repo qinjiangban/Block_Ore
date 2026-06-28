@@ -24,7 +24,7 @@ const normalizeMode = (value?: string | null): BaseNetworkMode | undefined => {
 // Alchemy RPC URL = base URL + API key
 const ALCHEMY_API_KEY = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY ?? "";
 
-const alchemyRpc = (baseUrl?: string, fallback: string): string => {
+const alchemyRpc = (baseUrl: string | undefined, fallback: string): string => {
   const url = baseUrl?.trim() || fallback;
   return ALCHEMY_API_KEY ? `${url}${ALCHEMY_API_KEY}` : url;
 };
