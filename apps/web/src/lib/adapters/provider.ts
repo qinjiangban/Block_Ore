@@ -9,6 +9,7 @@ import {
   isBlockOreConfigured,
 } from "@/lib/adapters/onchain-block-ore-adapter";
 import { useGameContext } from "@/store/game-context";
+import { defaultChain } from "../web3/chains";
 import { wagmiConfig } from "../web3/wagmi-config";
 
 type TreasurySnapshotView = {
@@ -37,7 +38,7 @@ export function useBlockOreAdapter() {
   const publicClient = usePublicClient();
   const { data: walletClient } = useWalletClient();
   const { currentChainId: chainId } = useGameContext();
-  const resolvedChainId = chainId ?? 84532;
+  const resolvedChainId = chainId ?? defaultChain.id;
 
   const [treasurySnapshot, setTreasurySnapshot] =
     useState<TreasurySnapshotView | null>(null);

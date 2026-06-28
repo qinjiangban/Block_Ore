@@ -15,12 +15,9 @@
     "contracts:test": "npm --prefix ./contracts run test",
     "contracts:deploy:sepolia": "npm --prefix ./contracts run deploy:sepolia && node ./scripts/sync-deployment-addresses.mjs sepolia",
     "contracts:deploy:base": "npm --prefix ./contracts run deploy:base && node ./scripts/sync-deployment-addresses.mjs base",
-    "vercel:sync-env:sepolia": "node ./scripts/vercel-sync-env.mjs sepolia",
-    "vercel:sync-env:base": "node ./scripts/vercel-sync-env.mjs base",
     "deploy:sepolia": "npm run contracts:compile && npm run contracts:deploy:sepolia",
     "deploy:base": "npm run contracts:compile && npm run contracts:deploy:base",
-    "deploy:sepolia:vercel": "npm run deploy:sepolia && npm run vercel:sync-env:sepolia",
-    "deploy:base:vercel": "npm run deploy:base && npm run vercel:sync-env:base"
+    "vercel:push:production": "node ./scripts/push-vercel-production-env.mjs"
   },
   "dependencies": {
     "ox": "^0.14.29",

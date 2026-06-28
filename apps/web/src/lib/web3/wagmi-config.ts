@@ -1,30 +1,36 @@
 import { createConfig } from "@privy-io/wagmi";
 import { http } from "wagmi";
+import type { Chain } from "viem";
 import { base, baseSepolia, mainnet, sepolia } from "viem/chains";
 import { Attribution } from "ox/erc8021";
 
 import { blockOreEnv } from "@/lib/env";
-import { evmChains } from "@/lib/web3/chains";
-
-const activeChains =
-  blockOreEnv.baseNetwork === "mainnet" ? evmChains.prod : evmChains.dev;
-
-const MAINNET_RPC = "https://ethereum-rpc.publicnode.com";
-const SEPOLIA_RPC = "https://ethereum-sepolia-rpc.publicnode.com";
+import { hardhatLocal, supportedChains } from "@/lib/web3/chains";
 
 const BUILDER_CODE_SUFFIX = Attribution.toDataSuffix({
   codes: ["bc_kvfh7urx"],
 });
 
+// 每条链对应的 Alchemy RPC URL
+const rpcUrlByChainId: Record<number, string> = {
+  [mainnet.id]: blockOreEnv.ethereumMainnetRpcUrl,
+  [base.id]: blockOreEnv.baseMainnetRpcUrl,
+  [sepolia.id]: blockOreEnv.ethereumSepoliaRpcUrl,
+  [baseSepolia.id]: blockOreEnv.baseSepoliaRpcUrl,
+  [hardhatLocal.id]: blockOreEnv.hardhatRpcUrl,
+};
+
+const transports = supportedChains.reduce<
+  Record<number, ReturnType<typeof http>>
+>((acc, chain) => {
+  acc[chain.id] = http(
+    rpcUrlByChainId[chain.id] ?? chain.rpcUrls.default.http[0],
+  );
+  return acc;
+}, {});
+
 export const wagmiConfig = createConfig({
-  chains: [activeChains.base, activeChains.ethereum] as const,
-  transports: {
-    [base.id]: http(blockOreEnv.baseRpcUrl || base.rpcUrls.default.http[0]),
-    [baseSepolia.id]: http(
-      blockOreEnv.baseSepoliaRpcUrl || baseSepolia.rpcUrls.default.http[0],
-    ),
-    [mainnet.id]: http(blockOreEnv.ethereumRpcUrl || MAINNET_RPC),
-    [sepolia.id]: http(blockOreEnv.ethereumSepoliaRpcUrl || SEPOLIA_RPC),
-  },
+  chains: supportedChains as [Chain, ...Chain[]],
+  transports,
   dataSuffix: BUILDER_CODE_SUFFIX,
 });

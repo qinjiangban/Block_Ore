@@ -89,7 +89,7 @@ Block_Ore/
 ├── scripts/                     # 根级自动化脚本
 │   ├── sync-contract-artifacts.mjs    # 同步 ABI 到前端
 │   ├── sync-deployment-addresses.mjs  # 部署地址回填 .env
-│   └── vercel-sync-env.mjs            # 推送到 Vercel 环境变量
+│   ├── push-vercel-production-env.mjs # 推送 .env.production.local 到 Vercel
 │
 ├── docs/                        # 设计文档
 ├── subgraph/                    # 子图索引（待开发）
@@ -138,47 +138,92 @@ npm run web:dev
 
 ## 常用命令
 
-| 命令                               | 说明                                |
-| ---------------------------------- | ----------------------------------- |
-| `npm run web:dev`                  | 启动前端开发服务器                  |
-| `npm run web:build`                | 构建前端                            |
-| `npm run contracts:compile`        | 编译合约 + 同步 ABI 到前端          |
-| `npm run contracts:test`           | 运行合约测试                        |
-| `npm run contracts:deploy:sepolia` | 部署合约到 Base Sepolia             |
-| `npm run contracts:deploy:base`    | 部署合约到 Base 主网                |
-| `npm run deploy:sepolia`           | 编译 + 部署 + 同步地址（本地 .env） |
-| `npm run deploy:sepolia:vercel`    | 编译 + 部署 + 同步 + 推送到 Vercel  |
+| 命令                                  | 说明                                                         |
+| ------------------------------------- | ------------------------------------------------------------ |
+| `npm run web:dev`                     | 启动前端开发服务器                                           |
+| `npm run web:build`                   | 构建前端                                                     |
+| `npm run contracts:compile`           | 编译合约并同步 ABI 到前端                                    |
+| `npm run contracts:test`              | 运行合约测试                                                 |
+| `npm run contracts:deploy:sepolia`   | 部署合约到 Base Sepolia                                      |
+| `npm run contracts:deploy:base`      | 部署合约到 Base 主网                                         |
+| `npm run deploy:sepolia`             | 编译 + 部署 + 同步地址到本地 .env                            |
+| `npm run deploy:base`                | 编译 + 部署到 Base 主网 + 同步地址到本地 .env                |
+| `npm run vercel:push:production`     | 将 `apps/web/.env.production.local` 全量推送到 Vercel production |
 
 ## 数据流
 
 ```
-用户操作 → Wagmi/Privy → 链上交易（BlockOre 合约）
+用户操作 → Privy/Wagmi → 链上交易（BlockOre / OreNFT 合约）
                 ↓
-        链上事件 → Adapter 解析 → Zustand Store → 页面渲染
+        链上事件 → onchain-block-ore-adapter 解析 → GameContext → 页面渲染
 ```
 
-前端通过 `onchain-block-ore-adapter` 读取链上数据（事件日志、合约状态），不依赖中心化后端。
+- **Privy**：负责钱包连接、社交登录、签名授权
+- **Wagmi/Viem**：发起合约调用、读取链上状态
+- **onchain-block-ore-adapter**：封装所有链上数据访问，统一解析合约事件与状态
+- **GameContext（React Context + useReducer）**：管理用户会话、钱包地址、链上统计、通知 toast
 
 ## 支持的网络
 
-| 网络              | 用途           | USDC                   |
-| ----------------- | -------------- | ---------------------- |
-| **Base Sepolia**  | 当前生产环境   | `0x036CbD...`（官方）  |
-| **Base 主网**     | 正式上线后切换 | `0x833589f...`（官方） |
-| **Hardhat Local** | 本地开发测试   | MockUSDC 自动部署      |
+| 网络              | 环境变量 `NEXT_PUBLIC_BASE_NETWORK` | USDC / 说明                                |
+| ----------------- | ----------------------------------- | ------------------------------------------ |
+| **Base Sepolia**  | `sepolia`                           | `0x036CbD53842c5426634e7929541eC2318f3dCF7e`（官方测试网 USDC） |
+| **Base 主网**     | `mainnet`                           | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`（官方 USDC）        |
+| **Hardhat Local** | `sepolia`（开发默认）                | 本地 MockUSDC，通过 `contracts/scripts/deploy.ts` 自动部署       |
+
+- 开发环境（`NODE_ENV=development`）默认启用 **Base Sepolia + Hardhat Local**
+- 生产环境（`NODE_ENV=production`）启用 **Ethereum 主网 + Base 主网**
+- RPC 默认使用 Alchemy，在 `.env` 中配置 `NEXT_PUBLIC_ALCHEMY_API_KEY`
 
 ## 环境变量
 
-首次运行前需配置：
+前端配置文件：`apps/web/.env.development.local` / `.env.production.local`
 
-- **前端** → 复制 `apps/web/.env.example` 为 `.env.development.local`，填入 Privy App ID 和合约地址
-- **合约** → 复制 `contracts/.env.example` 为 `contracts/.env`，填入部署私钥和金库地址
-- **Vercel**（可选）→ 在根目录 `.env` 中设置 `VERCEL_TOKEN` 和 `VERCEL_PROJECT_ID`
+| 变量名                                | 说明                                              | 示例值                                      |
+| ------------------------------------- | ------------------------------------------------- | ------------------------------------------- |
+| `NEXT_PUBLIC_PRIVY_APP_ID`            | Privy App ID                                      | `cm-...`                 |
+| `NEXT_PUBLIC_PRIVY_CLIENT_ID`         | Privy Client ID                                   | `client-...`                                |
+| `PRIVY_APP_SECRET`                    | Privy App Secret（仅服务端使用，不要加 NEXT_PUBLIC） | `privy_app_secret_...`                      |
+| `NEXT_PUBLIC_ALCHEMY_API_KEY`         | Alchemy API Key                                   | `...`                     |
+| `BASE_BUILDER_CODE`                   | Base Builder Code                                 | `bc_kvfh7urx`                               |
+| `NEXT_PUBLIC_BASE_NETWORK`            | 当前网络：`sepolia` 或 `mainnet`                  | `sepolia`                                   |
+| `NEXT_PUBLIC_BASE_SEPOLIA_RPC_URL`    | Base Sepolia Alchemy RPC URL                      | `https://base-sepolia.g.alchemy.com/v2/`    |
+| `NEXT_PUBLIC_BASE_MAINNET_RPC_URL`    | Base Mainnet Alchemy RPC URL                      | `https://base-mainnet.g.alchemy.com/v2/`    |
+| `NEXT_PUBLIC_ETHEREUM_SEPOLIA_RPC_URL`| Ethereum Sepolia Alchemy RPC URL                  | `https://eth-sepolia.g.alchemy.com/v2/`     |
+| `NEXT_PUBLIC_ETHEREUM_MAINNET_RPC_URL`| Ethereum Mainnet Alchemy RPC URL                  | `https://eth-mainnet.g.alchemy.com/v2/`     |
+| `NEXT_PUBLIC_HARDHAT_RPC_URL`         | Hardhat 本地节点 RPC URL                          | `http://127.0.0.1:8545`                     |
+| `NEXT_PUBLIC_BLOCK_ORE_ADDRESS_BASE`  | BlockOre 主网合约地址                             | `0x...`                                     |
+| `NEXT_PUBLIC_ORE_NFT_ADDRESS_BASE`    | OreNFT 主网合约地址                               | `0x...`                                     |
+| `NEXT_PUBLIC_BLOCK_ORE_ADDRESS_BASE_SEPOLIA` | BlockOre Sepolia 合约地址                  | `0x9c49a5b77604c3584079de1445d80f84a981f092` |
+| `NEXT_PUBLIC_ORE_NFT_ADDRESS_BASE_SEPOLIA`   | OreNFT Sepolia 合约地址                    | `0xef1525faf0c7886d1fa21852461d4405f6237ab9` |
+| `NEXT_PUBLIC_BLOCK_ORE_ADDRESS_HARDHAT` | Hardhat 本地 BlockOre 地址                       | `0x...`                                     |
+| `NEXT_PUBLIC_ORE_NFT_ADDRESS_HARDHAT` | Hardhat 本地 OreNFT 地址                         | `0x...`                                     |
+| `NEXT_PUBLIC_USDC_ADDRESS_HARDHAT`   | Hardhat 本地 MockUSDC 地址                        | `0x...`                                     |
+
+合约部署配置文件：`contracts/.env`
+
+| 变量名           | 说明                                  |
+| ---------------- | ------------------------------------- |
+| `PRIVATE_KEY`    | 部署者私钥                            |
+| `BASE_SEPOLIA_RPC_URL` | Base Sepolia RPC URL            |
+| `BASE_RPC_URL`   | Base 主网 RPC URL                     |
+| `OWNER_ADDRESS`  | 合约 owner 地址，默认等于部署地址       |
 
 ## Vercel 部署
 
-1. 在 [vercel.com](https://vercel.com) 导入 `apps/web` 作为 Root Directory
-2. 在 Dashboard 设置环境变量（参考 `apps/web/.env.production.local`）
-3. 部署新合约后运行 `npm run deploy:sepolia:vercel` 自动同步地址
+1. 在 [vercel.com](https://vercel.com) 导入项目，Root Directory 选择 `apps/web`
+2. 复制 `apps/web/.env.production.local` 内容到 Vercel 环境变量，或本地配置后运行推送脚本
+3. 推送环境变量到 Vercel production：
+
+```bash
+# 在根目录 .env 中配置 VERCEL_TOKEN 和 VERCEL_PROJECT_ID
+node ./scripts/push-vercel-production-env.mjs
+```
+
+脚本会读取 `apps/web/.env.production.local`，对 Vercel production 环境变量执行：
+
+- 本地存在、Vercel 存在 → **更新**
+- 本地存在、Vercel 不存在 → **创建**
+- Vercel 存在、本地不存在 → **删除**
 
 

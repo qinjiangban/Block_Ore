@@ -210,8 +210,10 @@ export const createPurchaseReceipt = (
   createdAt: "刚刚",
 });
 
-/** eth_getLogs 大多数 RPC 限制单次查询块范围（Base Sepolia 限制 2000 块），分页查询绕过此限制 */
-const BLOCK_RANGE = 2000n;
+/** eth_getLogs 分页查询，兼容 Alchemy Free 套餐（单次最大 10 块范围）。
+ *  默认回溯 200 块（约 6-7 分钟），分 20 次请求完成。 */
+const BLOCK_RANGE = 10n;
+const DEFAULT_LOOKBACK = 200n;
 
 async function paginatedGetLogs(
   client: PublicClient,
@@ -221,15 +223,20 @@ async function paginatedGetLogs(
     event: any;
     fromBlock?: bigint;
     toBlock?: "latest";
+    lookback?: bigint;
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ): Promise<any[]> {
   const currentBlock = await client.getBlockNumber();
-  const from = params.fromBlock ?? 0n;
-  const allLogs: Awaited<ReturnType<PublicClient["getLogs"]>> = [];
+  const lookback = params.lookback ?? DEFAULT_LOOKBACK;
+  const floor = currentBlock > lookback ? currentBlock - lookback : 0n;
+  const requestedFrom = params.fromBlock ?? 0n;
+  const startBlock = requestedFrom > floor ? requestedFrom : floor;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const allLogs: any[] = [];
 
-  let start = from;
-  while (start < currentBlock) {
+  let start = startBlock;
+  while (start <= currentBlock) {
     const end =
       start + BLOCK_RANGE > currentBlock
         ? currentBlock

@@ -1,6 +1,7 @@
 import { base, baseSepolia } from "viem/chains";
 
 import { blockOreEnv, DEFAULT_USDC_ADDRESSES } from "@/lib/env";
+import { hardhatLocal } from "@/lib/web3/chains";
 
 export const contractAddresses = {
   [base.id]: {
@@ -12,6 +13,11 @@ export const contractAddresses = {
     blockOre: blockOreEnv.blockOreAddressBaseSepolia || undefined,
     oreNft: blockOreEnv.oreNftAddressBaseSepolia || undefined,
     usdc: DEFAULT_USDC_ADDRESSES.baseSepolia,
+  },
+  [hardhatLocal.id]: {
+    blockOre: blockOreEnv.blockOreAddressHardhat || undefined,
+    oreNft: blockOreEnv.oreNftAddressHardhat || undefined,
+    usdc: blockOreEnv.usdcAddressHardhat || undefined,
   },
 } as const;
 
